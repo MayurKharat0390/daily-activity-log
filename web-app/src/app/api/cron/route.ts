@@ -1,6 +1,7 @@
 import { prisma } from "../../../lib/prisma";
-import { dailyCommit } from "../../../lib/github";
+import { dailyCommit, initializeStreakRepo } from "../../../lib/github";
 import { NextResponse } from "next/server";
+import { Octokit } from "octokit";
 
 export const dynamic = 'force-dynamic';
 
@@ -29,17 +30,28 @@ export async function GET() {
         continue;
       }
 
-      const owner = user.githubUsername;
-      if (!owner) {
-        console.log(`Skipping ${user.email}: githubUsername missing in DB.`);
-        continue;
-      }
-
       try {
+        // More robust owner/username lookup
+        const octokit = new Octokit({ auth: account.access_token });
+        const { data: githubUser } = await octokit.rest.users.getAuthenticated();
+        const owner = githubUser.login;
+
         if (user.streakTarget === "DEDICATED") {
           console.log(`Pushing dedicated update for ${owner}...`);
-          await dailyCommit(account.access_token, owner, "daily-streak-log");
-          results.push({ user: user.email, status: "success", strategy: "DEDICATED" });
+          try {
+            await dailyCommit(account.access_token, owner, "daily-streak-log");
+            results.push({ user: user.email, status: "success", strategy: "DEDICATED" });
+          } catch (err: any) {
+             if (err.status === 404) {
+               console.log(`Repo not found for ${owner}. Attempting auto-initialization...`);
+               await initializeStreakRepo(account.access_token);
+               // Retry once after initialization
+               await dailyCommit(account.access_token, owner, "daily-streak-log");
+               results.push({ user: user.email, status: "success (after init)", strategy: "DEDICATED" });
+             } else {
+               throw err;
+             }
+          }
         } else if (user.streakTarget === "RANDOM" && user.targetRepos) {
           try {
             const repositories = JSON.parse(user.targetRepos);
