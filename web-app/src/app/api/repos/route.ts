@@ -1,5 +1,5 @@
 import { auth } from "../../../../auth";
-import { prisma } from "../../../../lib/prisma";
+import { prisma } from "../../../lib/prisma";
 import { Octokit } from "octokit";
 import { NextResponse } from "next/server";
 

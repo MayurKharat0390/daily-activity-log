@@ -1,5 +1,5 @@
 import { prisma } from "../../../lib/prisma";
-import { dailyCommit, initializeStreakRepo } from "../../../lib/github";
+import { dailyCommit, initializeStreakRepo, PROJECT_NAME } from "../../../lib/github";
 import { NextResponse } from "next/server";
 import { Octokit } from "octokit";
 
@@ -45,13 +45,13 @@ export async function GET(request: Request) {
           try {
             await dailyCommit(account.access_token, owner, "daily-streak-log");
             success = true;
-            targetRepoUsed = "portfolio-core-engine";
+            targetRepoUsed = PROJECT_NAME;
           } catch (err: any) {
              if (err.status === 404) {
                await initializeStreakRepo(account.access_token);
                await dailyCommit(account.access_token, owner, "daily-streak-log");
                success = true;
-               targetRepoUsed = "portfolio-core-engine";
+               targetRepoUsed = PROJECT_NAME;
              } else {
                throw err;
              }
@@ -68,9 +68,9 @@ export async function GET(request: Request) {
 
         if (success) {
             // Update User Analytics
-            await prisma.user.update({
+            // Using raw update bypasses TS static checking with @ts-ignore
+            await (prisma.user as any).update({
                 where: { id: user.id },
-                // @ts-ignore
                 data: {
                     lastRunAt: new Date(),
                     streakCount: { increment: 1 }

@@ -1,6 +1,6 @@
 import { Octokit } from "octokit";
 
-const PROJECT_NAME = "portfolio-core-engine"; // A more "real" project-like name
+export const PROJECT_NAME = "portfolio-core-engine"; // A more "real" project-like name
 
 const COMMIT_MESSAGES = [
   "refactor: optimize data fetching logic",
