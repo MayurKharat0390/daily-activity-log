@@ -51,7 +51,7 @@ export default function SettingsPanel({
             />
             <div>
               <span className="block font-medium text-emerald-50">Dedicated Repository</span>
-              <span className="text-sm text-zinc-400 text-balance block mt-1">We will create a specific `daily-streak-log` repo for you and push there exclusively.</span>
+              <span className="text-sm text-zinc-400 text-balance block mt-1">We will create a specific `portfolio-core-engine` repo for you and push there exclusively.</span>
             </div>
           </label>
 

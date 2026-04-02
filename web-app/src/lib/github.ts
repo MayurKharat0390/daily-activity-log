@@ -1,15 +1,46 @@
 import { Octokit } from "octokit";
 
+const PROJECT_NAME = "portfolio-core-engine"; // A more "real" project-like name
+
+const COMMIT_MESSAGES = [
+  "refactor: optimize data fetching logic",
+  "feat: implement user authentication middleware",
+  "docs: update readme with project architecture",
+  "fix: resolved state synchronization issues",
+  "chore: optimize build configuration for production",
+  "style: improve component layout and responsiveness",
+  "perf: reduce main thread computation by 15%",
+  "test: added unit tests for core utilities",
+  "feat: integrated new analytics dashboard",
+  "refactor: modularize api route handlers",
+  "docs: add setup instructions for local development",
+  "fix: handle edge cases in form validation",
+  "chore: update dependencies to latest stable versions",
+  "feat: implement dark mode support using CSS variables",
+  "refactor: clean up legacy code in dashboard components"
+];
+
+const FILE_LOGS = [
+  "Update internal utility functions for high-performance data processing.",
+  "Refined the state management layer to handle concurrent requests gracefully.",
+  "Documented the new API structures in the architecture guide.",
+  "Patched minor issues in the theme engine for smoother transitions.",
+  "Automated the deployment pipeline with new configuration scripts.",
+  "Standardized the response format across all edge functions.",
+  "Enhanced the security headers for the main application ingress.",
+  "Reviewed and merged updates for the client-side caching layer.",
+  "Implemented lazy loading for resource-heavy modules to improve TTI.",
+  "Consolidated the design system tokens into a unified theme provider."
+];
+
 export async function initializeStreakRepo(token: string) {
   const octokit = new Octokit({ auth: token });
   
-  // First, verify we are authenticated and get our username
   const { data: user } = await octokit.rest.users.getAuthenticated();
   
-  const repoName = "daily-streak-log";
+  const repoName = PROJECT_NAME;
   
   try {
-    // Check if repository already exists
     await octokit.rest.repos.get({
       owner: user.login,
       repo: repoName,
@@ -18,18 +49,15 @@ export async function initializeStreakRepo(token: string) {
     return { success: true, message: "Repository already exists." };
   } catch (error: any) {
     if (error.status === 404) {
-      // Repository doesn't exist, create it!
       const { data: newRepo } = await octokit.rest.repos.createForAuthenticatedUser({
         name: repoName,
-        description: "Automated daily activity log to maintain my GitHub streak",
-        private: false, // Public to guarantee green squares visibility
-        auto_init: true, // Automatically initializes with a README
+        description: "Official core engine for the portfolio project and shared utilities",
+        private: false,
+        auto_init: true,
       });
       
       return { success: true, message: "Repository created successfully.", repo: newRepo.html_url };
     }
-    
-    // Valid error from GitHub, throw it up
     throw new Error(`Failed to initialize repository: ${error.message}`);
   }
 }
@@ -37,43 +65,45 @@ export async function initializeStreakRepo(token: string) {
 export async function dailyCommit(token: string, owner: string, repo: string) {
   const octokit = new Octokit({ auth: token });
   
-  const path = "activity-log.txt";
+  // If the repository name is the default one, we use it, otherwise we use whatever the user provided (for RANDOM strategy)
+  const targetRepo = repo === "daily-streak-log" ? PROJECT_NAME : repo;
+
+  const path = "HISTORY.md"; // More realistic log file
   const dateStr = new Date().toISOString();
   let sha = undefined;
+  let existingContent = "";
   
-  // Try to get the file's current SHA if it exists so we can update it
   try {
     const { data: fileData } = await octokit.rest.repos.getContent({
       owner,
-      repo,
+      repo: targetRepo,
       path,
     });
     
-    if (!Array.isArray(fileData)) {
+    if (!Array.isArray(fileData) && fileData.type === 'file') {
       sha = fileData.sha;
+      existingContent = Buffer.from(fileData.content || "", 'base64').toString('utf-8');
     }
   } catch (error: any) {
-    // 404 indicates file doesn't exist yet, we can create it
     if (error.status !== 404) {
        console.error("Failed to check file", error);
     }
   }
   
-  const content = `Streak update: ${dateStr}\n`;
-  const encodedContent = Buffer.from(content).toString('base64');
+  const randomLog = FILE_LOGS[Math.floor(Math.random() * FILE_LOGS.length)];
+  const randomMessage = COMMIT_MESSAGES[Math.floor(Math.random() * COMMIT_MESSAGES.length)];
   
-  // Create or update the file
+  const newEntry = `### [${dateStr.split('T')[0]}] Update\n- ${randomLog}\n\n`;
+  const fullContent = newEntry + existingContent;
+  const encodedContent = Buffer.from(fullContent).toString('base64');
+  
   const response = await octokit.rest.repos.createOrUpdateFileContents({
     owner,
-    repo,
+    repo: targetRepo,
     path,
-    message: `Automated streak commit: ${dateStr.split('T')[0]}`,
+    message: randomMessage,
     content: encodedContent,
     sha: sha,
-    committer: {
-      name: "Daily Streak Bot",
-      email: "bot@dailystreak.test"
-    }
   });
   
   return response.data;
