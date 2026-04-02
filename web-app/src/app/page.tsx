@@ -93,12 +93,26 @@ export default async function Home() {
                 />
 
                  {/* Status / Activity Panel */}
-                 <div className="bg-white/5 border border-white/10 rounded-3xl p-8 min-h-[400px] flex flex-col items-center justify-center text-center">
+                 <div className="bg-white/5 border border-white/10 rounded-3xl p-8 min-h-[460px] flex flex-col items-center justify-center text-center relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-8">
+                       <div className="flex flex-col items-end space-y-1">
+                          <span className="text-zinc-500 text-xs font-mono tracking-widest uppercase">STREAK HEALTH</span>
+                          <span className="text-emerald-400 text-3xl font-black italic tracking-tighter">
+                            {(session?.user as any)?.streakCount || 0}d
+                          </span>
+                       </div>
+                    </div>
+
                     <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_60px_rgba(16,185,129,0.2)]">
                       <TrendingUp className="w-12 h-12" />
                     </div>
-                    <h2 className="text-2xl font-bold mb-2">Automation Active</h2>
-                    <p className="text-zinc-400 max-w-sm">We are actively monitoring your account. Our daily cron will keep your streak alive.</p>
+                    <h2 className="text-2xl font-bold mb-2 tracking-tight">Automation Active</h2>
+                    <p className="text-zinc-400 max-w-sm mb-6 leading-relaxed">
+                      { (session?.user as any)?.lastRunAt 
+                        ? `Last successful push was today at ${new Date((session?.user as any)?.lastRunAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                        : "We are actively monitoring your account. Our daily cron will keep your streak alive." 
+                      }
+                    </p>
                     
                     {/* Manual Test Trigger */}
                     <div className="w-full max-w-xs mt-4">
