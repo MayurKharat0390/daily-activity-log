@@ -1,5 +1,7 @@
 import { auth, signIn, signOut } from "../../auth"
 import { GitBranch as Github, TrendingUp, Shuffle, Code2, Lock } from "lucide-react"
+import SettingsPanel from "../components/SettingsPanel"
+import { TriggerCronButton } from "../components/TriggerCronButton"
 
 export default async function Home() {
   const session = await auth()
@@ -85,43 +87,25 @@ export default async function Home() {
 
               <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-8">
                 {/* Settings Panel */}
-                <div className="bg-white/[0.02] border border-white/10 rounded-3xl p-8 h-fit">
-                  <h3 className="text-xl font-semibold mb-6">Automation Strategy</h3>
-                  
-                  <div className="space-y-6">
-                     {/* Client component wrapper for the interactive form would go here, 
-                         for now we show static mock up of the options */}
-                     <label className="flex items-start space-x-4 p-4 rounded-xl border border-emerald-500/50 bg-emerald-500/5 cursor-pointer hover:bg-emerald-500/10 transition-colors">
-                       <input type="radio" name="strategy" className="mt-1" defaultChecked />
-                       <div>
-                         <span className="block font-medium text-emerald-50">Dedicated Repository</span>
-                         <span className="text-sm text-zinc-400 text-balance block mt-1">We will create a specific `daily-streak-log` repo for you and push there exclusively.</span>
-                       </div>
-                     </label>
+                <SettingsPanel 
+                  initialStrategy={(session?.user as any)?.streakTarget || "DEDICATED"}
+                  initialTargetRepos={(session?.user as any)?.targetRepos || ""}
+                />
 
-                     <label className="flex items-start space-x-4 p-4 rounded-xl border border-white/10 cursor-pointer hover:bg-white/5 transition-colors opacity-50 cursor-not-allowed">
-                       <input type="radio" name="strategy" className="mt-1" disabled />
-                       <div>
-                         <span className="block font-medium">Random Repositories (Coming Soon)</span>
-                         <span className="text-sm text-zinc-400 text-balance block mt-1">Select from your existing repositories to randomly distribute commits.</span>
-                       </div>
-                     </label>
-
-                     <button className="w-full mt-4 py-3 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-bold rounded-xl transition-colors">
-                       Save Parameters
-                     </button>
-                  </div>
-                </div>
-
-                {/* Status / Activity Panel */}
-                <div className="bg-white/5 border border-white/10 rounded-3xl p-8 min-h-[400px] flex flex-col items-center justify-center text-center">
-                   <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_60px_rgba(16,185,129,0.2)]">
-                     <TrendingUp className="w-12 h-12" />
-                   </div>
-                   <h2 className="text-2xl font-bold mb-2">Automation Active</h2>
-                   <p className="text-zinc-400 max-w-sm">We are actively monitoring your account. Next scheduled commit is in <strong className="text-white">14 hours</strong>.</p>
-                </div>
-              </div>
+                 {/* Status / Activity Panel */}
+                 <div className="bg-white/5 border border-white/10 rounded-3xl p-8 min-h-[400px] flex flex-col items-center justify-center text-center">
+                    <div className="w-24 h-24 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_60px_rgba(16,185,129,0.2)]">
+                      <TrendingUp className="w-12 h-12" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-2">Automation Active</h2>
+                    <p className="text-zinc-400 max-w-sm">We are actively monitoring your account. Our daily cron will keep your streak alive.</p>
+                    
+                    {/* Manual Test Trigger */}
+                    <div className="w-full max-w-xs mt-4">
+                      <TriggerCronButton />
+                    </div>
+                 </div>
+               </div>
 
             </div>
           )}
