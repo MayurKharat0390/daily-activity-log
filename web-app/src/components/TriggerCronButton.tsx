@@ -1,57 +1,69 @@
 "use client";
 
 import { useState } from "react";
-import { Play } from "lucide-react";
+import { Loader2, Play, CheckCircle2, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function TriggerCronButton() {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
-  async function handleTrigger() {
-    setLoading(true);
-    setResult(null);
-    setError("");
-    
+  const handleTrigger = async () => {
+    setIsLoading(true);
+    setStatus("idle");
     try {
-      // Calling our CRON endpoint manually
       const res = await fetch("/api/cron");
-      const data = await res.json();
-      
-      if (!res.ok) throw new Error(data.error || "Failed to trigger cron");
-      
-      setResult(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      if (res.ok) {
+        setStatus("success");
+        setTimeout(() => setStatus("idle"), 5000);
+      } else {
+        setStatus("error");
+      }
+    } catch (err) {
+      setStatus("error");
     }
-  }
+    setIsLoading(false);
+  };
 
   return (
-    <div className="mt-8 pt-8 border-t border-white/5">
-      <button 
-        onClick={handleTrigger}
-        disabled={loading}
-        className="flex items-center space-x-2 text-sm text-zinc-500 hover:text-emerald-400 transition-colors disabled:opacity-50"
-      >
-        <Play className="w-4 h-4" />
-        <span>{loading ? "Processing Automation..." : "Test Automation (Trigger Daily Push)"}</span>
-      </button>
+    <div className="w-full relative group">
+      <AnimatePresence>
+        {status === "success" && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center space-x-2 bg-emerald-500 text-emerald-950 font-black italic px-4 py-1.5 rounded-full text-[10px] tracking-widest uppercase shadow-[0_0_40px_rgba(16,185,129,0.5)] z-20"
+          >
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Deployment Successful</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {error && <p className="mt-2 text-xs text-red-500">{error}</p>}
-      
-      {result && result.success && (
-        <div className="mt-4 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs font-mono overflow-auto max-h-40">
-           <p className="text-emerald-400 mb-2">✓ Success: Processed {result.processed} accounts</p>
-           {result.results.map((r: any, i: number) => (
-             <div key={i} className="mb-1 text-zinc-400">
-               {r.user}: {r.status} {r.strategy} {r.target ? `-> ${r.target}` : ""}
-               {r.error && <span className="text-red-500"> ({r.error})</span>}
-             </div>
-           ))}
-        </div>
-      )}
+      <button
+        onClick={handleTrigger}
+        disabled={isLoading}
+        className={`w-full py-5 rounded-3xl font-black italic uppercase tracking-tighter text-lg transition-all duration-500 flex items-center justify-center space-x-3 border-2 ${
+          status === "success" 
+            ? "bg-emerald-500 border-emerald-400 text-emerald-950 scale-[1.02]" 
+            : status === "error"
+            ? "bg-red-500/20 border-red-500/50 text-red-500"
+            : "bg-white/5 border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/5 text-zinc-300 hover:text-emerald-400"
+        } disabled:opacity-50`}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span>Initiating Protocol...</span>
+          </>
+        ) : (
+          <>
+            <Play className={`w-5 h-5 fill-current transition-transform duration-300 ${status === 'idle' ? 'group-hover:scale-125' : ''}`} />
+            <span>{status === "success" ? "System Verified" : status === "error" ? "Failure Detected" : "Trigger Manual Injection"}</span>
+          </>
+        )}
+      </button>
     </div>
   );
 }
