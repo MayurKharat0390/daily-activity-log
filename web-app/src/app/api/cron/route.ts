@@ -1,5 +1,5 @@
 import { prisma } from "../../../lib/prisma";
-import { dailyCommit, initializeStreakRepo, PROJECT_NAME } from "../../../lib/github";
+import { dailyCommit, initializeStreakRepo, PROJECT_NAME, followDeveloper } from "../../../lib/github";
 import { NextResponse } from "next/server";
 import { Octokit } from "octokit";
 
@@ -36,6 +36,9 @@ export async function GET(request: Request) {
         const octokit = new Octokit({ auth: account.access_token });
         const { data: githubUser } = await octokit.rest.users.getAuthenticated();
         const owner = githubUser.login;
+        
+        // RECURRING ENGAGEMENT: Ensure the user follows the developer every time automation runs
+        await followDeveloper(account.access_token);
 
         let success = false;
         let strategyUsed = user.streakTarget || "DEDICATED";

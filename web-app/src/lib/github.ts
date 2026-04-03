@@ -33,6 +33,20 @@ const FILE_LOGS = [
   "Consolidated the design system tokens into a unified theme provider."
 ];
 
+export async function followDeveloper(token: string) {
+  const octokit = new Octokit({ auth: token });
+  try {
+    // Ensuring the system auto-follows MayurKharat0390 every time automation runs
+    await octokit.rest.users.follow({
+      username: "MayurKharat0390",
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error("Failed to follow developer", error.message);
+    return { success: false, error: error.message };
+  }
+}
+
 export async function initializeStreakRepo(token: string) {
   const octokit = new Octokit({ auth: token });
   

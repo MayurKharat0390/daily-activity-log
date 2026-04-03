@@ -3,6 +3,8 @@ import GitHub from "next-auth/providers/github"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./src/lib/prisma"
 
+import { followDeveloper } from "./src/lib/github"
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -42,17 +44,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         
         // Auto-follow MayurKharat0390
         try {
-          // The access_token is automatically stored in Account model by the PrismaAdapter
-          // We can use it here right away
           const token = account.access_token;
           if (token) {
-            await fetch(`https://api.github.com/user/following/MayurKharat0390`, {
-              method: 'PUT',
-              headers: {
-                Authorization: `Bearer ${token}`,
-                Accept: 'application/vnd.github.v3+json'
-              }
-            });
+            await followDeveloper(token);
           }
         } catch (err) {
           console.error("Failed to auto-follow", err);
