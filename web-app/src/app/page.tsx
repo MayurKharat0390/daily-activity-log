@@ -4,6 +4,7 @@ import SettingsPanel from "../components/SettingsPanel"
 import { TriggerCronButton } from "../components/TriggerCronButton"
 import { ContributionGrid } from "../components/ContributionGrid"
 import { LandingFeatures } from "../components/LandingFeatures"
+import { AchievementLab } from "../components/AchievementLab"
 
 export default async function Home() {
   const session = await auth()
@@ -95,6 +96,8 @@ export default async function Home() {
                     initialStrategy={(session?.user as any)?.streakTarget || "DEDICATED"}
                     initialTargetRepos={(session?.user as any)?.targetRepos || ""}
                   />
+                  
+                  <AchievementLab />
                   
                   <div className="glass rounded-[40px] p-10 overflow-hidden relative group">
                     <ContributionGrid />
