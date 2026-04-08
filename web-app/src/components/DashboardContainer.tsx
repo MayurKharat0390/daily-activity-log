@@ -137,10 +137,10 @@ export default function DashboardContainer({ session }: { session: any }) {
                                         <div className="mt-8 w-full">
                                             <TriggerCronButton />
                                         </div>
-                                        <p className="mt-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center justify-center space-x-2">
+                                        <div className="mt-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest flex items-center justify-center space-x-2">
                                             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
                                             <span>System synchronized</span>
-                                        </p>
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>
