@@ -1,4 +1,4 @@
-import { auth } from "../../../../auth";
+import { auth } from "../../../auth";
 import { prisma } from "../../../lib/prisma";
 import { initializeStreakRepo } from "../../../lib/github";
 import { NextResponse } from "next/server";

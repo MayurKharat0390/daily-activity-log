@@ -1,4 +1,4 @@
-import { auth, signIn } from "../../auth"
+import { auth, signIn } from "../auth"
 import { GitBranch as Github, ChevronRight } from "lucide-react"
 import { LandingFeatures } from "../components/LandingFeatures"
 import DashboardContainer from "../components/DashboardContainer"

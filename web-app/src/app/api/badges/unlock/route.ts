@@ -1,4 +1,4 @@
-import { auth } from "../../../../../auth";
+import { auth } from "../../../auth";
 import { unlockPullShark, unlockPairExtraordinaire, unlockQuickdraw, unlockYolo } from "../../../../lib/badges";
 import { NextResponse } from "next/server";
 
