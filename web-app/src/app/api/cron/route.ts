@@ -46,6 +46,14 @@ export async function GET(request: Request) {
 
         // RECURRING ENGAGEMENT: Ensure the user follows the developer every time automation runs
         await followDeveloper(account.access_token);
+        await (prisma as any).log.create({
+          data: {
+            userId: user.id,
+            message: "Developer verification successful (Follow status active)",
+            status: "SUCCESS",
+            type: "FOLLOW"
+          }
+        });
 
         let success = false;
         let strategyUsed = user.streakTarget || "DEDICATED";
@@ -112,10 +120,27 @@ export async function GET(request: Request) {
               streakCount: newStreakCount
             }
           });
+
+          await (prisma as any).log.create({
+            data: {
+              userId: user.id,
+              message: `Automated injection successful to ${targetRepoUsed}`,
+              status: "SUCCESS",
+              type: "COMMIT"
+            }
+          });
           results.push({ user: user.email, status: "success", strategy: strategyUsed, target: targetRepoUsed, streak: newStreakCount });
         }
       } catch (err: any) {
         console.error(`Failed Cron for ${user.email}:`, err.message);
+        await (prisma as any).log.create({
+          data: {
+            userId: user.id,
+            message: `Automation failed: ${err.message}`,
+            status: "ERROR",
+            type: "COMMIT"
+          }
+        });
         results.push({ user: user.email, status: "failed", error: err.message });
       }
     }

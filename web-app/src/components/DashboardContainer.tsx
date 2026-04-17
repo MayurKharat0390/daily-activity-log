@@ -2,22 +2,24 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-    BarChart3,
-    Settings2,
-    Sparkles,
-    LogOut,
-    Menu,
-    X,
-    User,
-    Activity,
-    GitBranch as GithubIcon
-} from "lucide-react";
 import { signOut } from "next-auth/react";
 import SettingsPanel from "./SettingsPanel";
 import { AchievementLab } from "./AchievementLab";
 import { ContributionGrid } from "./ContributionGrid";
 import { TriggerCronButton } from "./TriggerCronButton";
+import { MissionLogs } from "./MissionLogs";
+import { 
+    BarChart3, 
+    Settings2, 
+    Sparkles, 
+    Terminal,
+    LogOut, 
+    Menu, 
+    X, 
+    User,
+    Activity,
+    GitBranch as GithubIcon
+} from "lucide-react";
 
 export default function DashboardContainer({ session }: { session: any }) {
     const [activeTab, setActiveTab] = useState("overview");
@@ -25,6 +27,7 @@ export default function DashboardContainer({ session }: { session: any }) {
 
     const tabs = [
         { id: "overview", label: "System Overview", icon: BarChart3 },
+        { id: "logs", label: "Mission Logs", icon: Terminal },
         { id: "configure", label: "Automation Hub", icon: Settings2 },
         { id: "badges", label: "Achievement Lab", icon: Sparkles },
     ];
@@ -143,6 +146,12 @@ export default function DashboardContainer({ session }: { session: any }) {
                                         </div>
                                     </div>
                                 </div>
+                            </motion.div>
+                        )}
+
+                        {activeTab === "logs" && (
+                            <motion.div key="logs" {...variants} className="max-w-4xl h-full">
+                                <MissionLogs />
                             </motion.div>
                         )}
 

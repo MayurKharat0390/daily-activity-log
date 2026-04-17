@@ -109,7 +109,8 @@ export async function dailyCommit(token: string, owner: string, repo: string) {
   const randomLog = FILE_LOGS[Math.floor(Math.random() * FILE_LOGS.length)];
   const randomMessage = COMMIT_MESSAGES[Math.floor(Math.random() * COMMIT_MESSAGES.length)];
 
-  const newEntry = `### [${dateStr.split('T')[0]}] Update\n- ${randomLog}\n\n`;
+  // Using full time and random ID ensures every single trigger creates a unique commit
+  const newEntry = `### [${dateStr.replace('T', ' ').split('.')[0]}] Update (ID: ${Math.random().toString(36).substring(7)})\n- ${randomLog}\n\n`;
   const fullContent = newEntry + existingContent;
   const encodedContent = Buffer.from(fullContent).toString('base64');
 
