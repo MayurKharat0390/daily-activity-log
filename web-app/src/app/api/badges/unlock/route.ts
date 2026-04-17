@@ -2,6 +2,9 @@ import { auth } from "../../../../../auth";
 import { unlockPullShark, unlockPairExtraordinaire, unlockQuickdraw, unlockYolo } from "../../../../lib/badges";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 30;
+
+
 export async function POST(request: Request) {
   try {
     const session = await auth();

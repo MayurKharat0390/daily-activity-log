@@ -4,6 +4,8 @@ import { NextResponse } from "next/server";
 import { Octokit } from "octokit";
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 
 export async function GET(request: Request) {
   // Security: Check for Cron Secret if configured
