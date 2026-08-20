@@ -34,8 +34,9 @@ export async function GET() {
             fullName: r.full_name
         }))
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
     console.error("Failed to fetch repos", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

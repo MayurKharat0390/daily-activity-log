@@ -47,8 +47,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
     
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Failed to save settings";
     console.error("Setup error:", error);
-    return NextResponse.json({ error: error.message || "Failed to save settings" }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

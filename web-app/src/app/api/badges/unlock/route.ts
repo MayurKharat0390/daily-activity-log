@@ -35,8 +35,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("Unlock error:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Unlock error:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

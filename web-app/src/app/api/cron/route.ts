@@ -6,9 +6,7 @@ import { Octokit } from "octokit";
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-
 export async function GET(request: Request) {
-  // Security: Check for Cron Secret if configured
   const { searchParams } = new URL(request.url);
   const secret = searchParams.get('secret');
 
@@ -26,7 +24,7 @@ export async function GET(request: Request) {
       }
     });
 
-    const results = [];
+    const results: Array<Record<string, unknown>> = [];
 
     for (const user of users) {
       console.log(`[Cron] Processing user: ${user.email}`);
@@ -46,9 +44,8 @@ export async function GET(request: Request) {
         const { data: githubUser } = await octokit.rest.users.getAuthenticated();
         const owner = githubUser.login;
 
-        // RECURRING ENGAGEMENT: Ensure the user follows the developer every time automation runs
         await followDeveloper(account.access_token);
-        await (prisma as any).log.create({
+        await prisma.log.create({
           data: {
             userId: user.id,
             message: "Developer verification successful (Follow status active)",
@@ -58,7 +55,7 @@ export async function GET(request: Request) {
         });
 
         let success = false;
-        let strategyUsed = user.streakTarget || "DEDICATED";
+        const strategyUsed = user.streakTarget || "DEDICATED";
         let targetRepoUsed = "";
 
         if (user.streakTarget === "DEDICATED") {
@@ -66,8 +63,9 @@ export async function GET(request: Request) {
             await dailyCommit(account.access_token, owner, "daily-streak-log");
             success = true;
             targetRepoUsed = PROJECT_NAME;
-          } catch (err: any) {
-            if (err.status === 404) {
+          } catch (err: unknown) {
+            const e = err as { status?: number };
+            if (e.status === 404) {
               await initializeStreakRepo(account.access_token);
               await dailyCommit(account.access_token, owner, "daily-streak-log");
               success = true;
@@ -78,20 +76,19 @@ export async function GET(request: Request) {
           }
         } else if (user.streakTarget === "RANDOM" && user.targetRepos) {
           try {
-            const repositories = JSON.parse(user.targetRepos);
+            const repositories = JSON.parse(user.targetRepos) as string[];
             if (Array.isArray(repositories) && repositories.length > 0) {
               const randomRepo = repositories[Math.floor(Math.random() * repositories.length)];
               await dailyCommit(account.access_token, owner, randomRepo);
               success = true;
               targetRepoUsed = randomRepo;
             }
-          } catch (parseErr) {
+          } catch {
             console.error("Failed to parse target repos for", user.email, user.targetRepos);
           }
         }
 
         if (success) {
-          // Intelligent Streak Logic
           const now = new Date();
           const lastRun = user.lastRunAt ? new Date(user.lastRunAt) : null;
 
@@ -115,7 +112,7 @@ export async function GET(request: Request) {
             newStreakCount = 1;
           }
 
-          await (prisma.user as any).update({
+          await prisma.user.update({
             where: { id: user.id },
             data: {
               lastRunAt: now,
@@ -123,7 +120,7 @@ export async function GET(request: Request) {
             }
           });
 
-          await (prisma as any).log.create({
+          await prisma.log.create({
             data: {
               userId: user.id,
               message: `Automated injection successful to ${targetRepoUsed}`,
@@ -133,23 +130,24 @@ export async function GET(request: Request) {
           });
           results.push({ user: user.email, status: "success", strategy: strategyUsed, target: targetRepoUsed, streak: newStreakCount });
         }
-      } catch (err: any) {
-        console.error(`Failed Cron for ${user.email}:`, err.message);
-        await (prisma as any).log.create({
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error(`Failed Cron for ${user.email}:`, msg);
+        await prisma.log.create({
           data: {
             userId: user.id,
-            message: `Automation failed: ${err.message}`,
+            message: `Automation failed: ${msg}`,
             status: "ERROR",
             type: "COMMIT"
           }
         });
-        results.push({ user: user.email, status: "failed", error: err.message });
+        results.push({ user: user.email, status: "failed", error: msg });
       }
     }
 
     return NextResponse.json({ success: true, processed: results.length, results });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("CRITICAL: Cron failed entirely", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }

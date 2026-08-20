@@ -16,8 +16,9 @@ export async function GET() {
     });
 
     return NextResponse.json({ logs });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
     console.error("Failed to fetch logs", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

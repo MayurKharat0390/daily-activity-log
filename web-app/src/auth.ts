@@ -3,6 +3,13 @@ import GitHub from "next-auth/providers/github"
 import { PrismaAdapter } from "@auth/prisma-adapter"
 import { prisma } from "./lib/prisma"
 import { followDeveloper } from "./lib/github"
+import type { User } from "@auth/core/types"
+
+interface ExtendedUser extends User {
+  streakTarget?: string;
+  targetRepos?: string;
+  githubUsername?: string;
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -21,13 +28,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, user }) {
       if (session.user) {
         session.user.id = user.id
-        // Add custom fields
-        // @ts-ignore
-        session.user.streakTarget = (user as any).streakTarget;
-        // @ts-ignore
-        session.user.targetRepos = (user as any).targetRepos;
-        // @ts-ignore
-        session.user.githubUsername = (user as any).githubUsername;
+        const ext = user as ExtendedUser;
+        // @ts-expect-error -- custom field not in default session type
+        session.user.streakTarget = ext.streakTarget;
+        // @ts-expect-error -- custom field not in default session type
+        session.user.targetRepos = ext.targetRepos;
+        // @ts-expect-error -- custom field not in default session type
+        session.user.githubUsername = ext.githubUsername;
       }
       return session
     },
@@ -35,15 +42,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   events: {
     async signIn({ user, account, profile }) {
       if (account?.provider === "github") {
-        // Ensure the GitHub username is saved if it's the first time
-        if (profile?.login && profile.login !== (user as any).githubUsername) {
+        const ext = user as ExtendedUser;
+        if (profile?.login && profile.login !== ext.githubUsername) {
           await prisma.user.update({
             where: { id: user.id },
             data: { githubUsername: profile.login as string }
           })
         }
         
-        // Auto-follow MayurKharat0390
         try {
           const token = account.access_token;
           if (token) {
